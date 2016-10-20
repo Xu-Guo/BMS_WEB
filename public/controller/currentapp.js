@@ -3,26 +3,26 @@ var app = angular.module('plunker', ['nvd3']);
 const CHART = document.getElementById("lineChart");
 
 
-app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $http, $interval) {
-    $scope.getCurrentData = function() {
-        $http.get("/currentdata").success(function(response) {
+app.controller('MainCtrl', ['$scope', '$http', '$interval', function ($scope, $http, $interval) {
+    $scope.getCurrentData = function () {
+        $http.get("/currentdata").success(function (response) {
             console.log(response);
-            //$scope.processCurrentData(response);
+            $scope.processCurrentData(response);
         });
     };
 
     var stop;
-    $scope.refresh = function() {
+    $scope.refresh = function () {
         // Don't start a new fight if we are already fighting
         if (angular.isDefined(stop)) return;
         $scope.getCurrentData();
-        stop = $interval(function() {
+        stop = $interval(function () {
             // console.log("refreshing...");
             $scope.getCurrentData();
         }, 500);
     };
 
-    $scope.stopRefresh = function() {
+    $scope.stopRefresh = function () {
         if (angular.isDefined(stop)) {
             $interval.cancel(stop);
             stop = undefined;
@@ -32,7 +32,7 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
     $scope.getIntialData = function () {
 
         console.log("getInialData");
-        $http.get("/initialcurrentdata").success(function(response) {
+        $http.get("/initialcurrentdata").success(function (response) {
             console.log(response);
             $scope.processInitialCurrentData(response);
             $scope.drawCurrentChart();
@@ -49,13 +49,13 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
     // }
     $scope.processInitialCurrentData = function (rawData) {
         var len = rawData.length;
-        for(var i = 0; i < len - 1; i++){
+        for (var i = 0; i < len - 1; i++) {
 
             $scope.initialx[i] = new Date(rawData[i].timestp).getTime();
 
-            if(Number(rawData[i].battery_status) == 2){
+            if (Number(rawData[i].battery_status) == 2) {
                 $scope.initialy[i] = 0 - Number(rawData[i].dis_cur);
-            }else if(Number(rawData[i].battery_status) == 1){
+            } else if (Number(rawData[i].battery_status) == 1) {
                 $scope.initialy[i] = Number(rawData[i].ch_cur);
             }
 
@@ -70,25 +70,30 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
     var value;
     var x;
     var y;
+    var lateststatus;
 
 
-    $scope.processCurrentData = function(rawData) {
+    $scope.processCurrentData = function (rawData) {
+        lateststatus = rawData[0].battery_status;
         var pidNew = Number(rawData[0].id);
-        if(pidNew == pidOld){
+
+        if (pidNew == pidOld) {
             return;
         }
         gotNewDataFlag = 1;
         time = new Date(rawData[0].timestp).getTime();
-        if(Number(rawData[0].battery_status) == 2){ //discharge
+        if (Number(rawData[0].battery_status) == 2) { //discharge
             value = 0 - Number(rawData[0].dis_cur);
-        }else if(Number(rawData[0].battery_status) == 1){//charging
+        } else if (Number(rawData[0].battery_status) == 1) {//charging
             value = Number(rawData[0].ch_cur);
         }
+        pidOld = pidNew;
+        console.log("iam here wwwwwwwwwwwwwwwwwwww");
     };
 
-    $scope.drawCurrentChart = function() {
+    $scope.drawCurrentChart = function () {
 
-            
+
         Highcharts.setOptions({
             global: {
                 useUTC: false
@@ -106,14 +111,24 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
                         // set up the updating of the chart each second
                         var series = this.series[0];
                         setInterval(function () {
-                            //$scope.refresh();
-                            if(gotNewDataFlag == 1){
+                            $scope.refresh();
+
+                            if (gotNewDataFlag == 1) {
+                                console.log(" i m here!!@!@!@!@!");
                                 x = time;
                                 y = value;
+                                gotNewDataFlag = 0;
+                            } else {
+                                if (lateststatus != 0) {
+                                    y = value;
+                                } else {
+                                    y = 0;
+                                }
+                                x = (new Date()).getTime();// current time
                             }
-                            x = (new Date()).getTime(), // current time
+
                             series.addPoint([x, y], true, true);
-                        }, 100000);
+                        }, 1000);
                     }
                 }
             },
