@@ -6,8 +6,9 @@ const CHART = document.getElementById("lineChart");
 app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $http, $interval) {
     $scope.getChargeData = function() {
         $http.get("/socdata").success(function(response) {
-            console.log(response);
+           // console.log(response);
             $scope.processChargeData(response);
+            $scope.displaySoc();
         });
     };
 
@@ -29,115 +30,103 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
         }
     };
 
-    $scope.refresh();
+   // $scope.refresh();
 
 
     $scope.maxCurrent = 10000;
+    var chargeData = [];
+
     $scope.processChargeData = function(rawData) {
-        var arrayLength = rawData.length;
-        var cur = [];
-        var sum = 0;
-        var sumArr = [];
-        for (var i = arrayLength - 1; i >= 0; i--) {
-            var row = [];
-            var sumRow = [];
-            var chCur = rawData[i].ch_cur;
-            var current = 0;
-            if (chCur >= 100) {
-                current = 1000 * chCur / 4095;
-            }
+        var time;
+        var socValue;
+        for(var i=0; i<rawData.length; i++){
+            time = (new Date(rawData[i].timestp.replace(' ', 'T'))).getTime();
+             // time = (new Date()).getTime()+i*1000;
+            socValue = rawData[i].stateofcharge;
+            chargeData.push({"time":time, "socValue":socValue}); 
 
-
-            sum += current;
-            row.push(new Date(rawData[i].timestp).getTime());
-            row.push(Number(current).toFixed(2));
-            sumRow.push(new Date(rawData[i].timestp).getTime());
-            sumRow.push(Number(sum * 3).toFixed(2));
-            //Do something
-            cur.push(row);
-            sumArr.push(sumRow);
         }
-        $scope.maxCurrent = sumArr[arrayLength - 1][1];
-        $scope.tmp = rawData[arrayLength - 1].temperature + "℃";
-        var now_curr = cur[arrayLength - 1][1];
-        if(now_curr < 10){
-            $scope.chargeClass = 'label-default';
-            $scope.charging = 'Not Charging';
-        } else {
-            $scope.chargeClass = 'label-success';
-            $scope.charging = 'Charging';
-        }
-
-        $scope.pushChargeData(cur, sumArr);
+    }
+    var test = [];
+    for(var i=0; i<1000; i++){
+        test.push(i);
     }
 
+    $scope.displaySoc = function(){
+        var value = [];
+        for(var i=0; i<chargeData.length; i++){
 
-    $scope.pushChargeData = function(currents, currentSum) {
-
-        let lineChart = new Chart(CHART,{
-            type: 'line',
-            data: {
-                //labels will determine the length of the chart
-                labels: ["January", "February", "March", "April", "May", "June", "July", "August", "Sep"],
-                datasets: [
-                    {
-                        label: "My First dataset",
-                        fill: false,
-                        lineTension: 0.1,
-                        backgroundColor: "rgba(75,192,192,0.4)",
-                        borderColor: "rgba(75,192,192,1)",
-                        borderCapStyle: 'butt',
-                        borderDash: [],
-                        borderDashOffset: 0.0,
-                        borderJoinStyle: 'miter',
-                        pointBorderColor: "rgba(75,192,192,1)",
-                        pointBackgroundColor: "#fff",
-                        pointBorderWidth: 1,
-                        pointHoverRadius: 5,
-                        pointHoverBackgroundColor: "rgba(75,192,192,1)",
-                        pointHoverBorderColor: "rgba(220,220,220,1)",
-                        pointHoverBorderWidth: 2,
-                        pointRadius: 1,
-                        pointHitRadius: 10,
-                        data: [65, 59, 80, 81, 56, 55, 40, 50, 30],
-                        spanGaps: false,
-                    },
-                    {
-                        label: "My second dataset",
-                        fill: true, // fill color
-                        lineTension: 0.2,//sharp or smooth on the line.
-                        backgroundColor: "rgba(75,75,192,0.4)",
-                        borderColor: "rgba(75,72,192,1)",
-                        borderCapStyle: 'butt',
-                        borderDash: [],
-                        borderDashOffset: 0.0,
-                        borderJoinStyle: 'miter',
-                        pointBorderColor: "rgba(75,72,192,1)",
-                        pointBackgroundColor: "#fff",
-                        pointBorderWidth: 1,
-                        pointHoverRadius: 5,
-                        pointHoverBackgroundColor: "rgba(75,72,192,1)",
-                        pointHoverBorderColor: "rgba(220,220,220,1)",
-                        pointHoverBorderWidth: 2,
-                        pointRadius: 1,
-                        pointHitRadius: 10,
-                        data: [100, 20, 60, 20, 80, 55, 90, 20, 40],
-                        spanGaps: false,
-                    }
-                ]
+        console.log("data, time:"+chargeData[i].time+"value: "+chargeData[i].socValue);
+        value.push(chargeData[i].socValue);
+        }
+        $('#container').highcharts({
+            chart: {
+                zoomType: 'x'
             },
-            options : {
-                scales: {
-                    yAxes:[{
-                        ticks: {
-                            beginAtZero : true  
-                        }
-                    }]
+            title: {
+                text: 'USD to EUR exchange rate over time'
+            },
+            subtitle: {
+                text: document.ontouchstart === undefined ?
+                        'Click and drag in the plot area to zoom in' : 'Pinch the chart to zoom in'
+            },
+            xAxis: {
+                type: 'datetime'
+            },
+            yAxis: {
+                title: {
+                    text: 'Exchange rate'
                 }
-            }
+            },
+            legend: {
+                enabled: false
+            },
+            plotOptions: {
+                area: {
+                    fillColor: {
+                        linearGradient: {
+                            x1: 0,
+                            y1: 0,
+                            x2: 0,
+                            y2: 1
+                        },
+                        stops: [
+                            [0, Highcharts.getOptions().colors[0]],
+                            [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                        ]
+                    },
+                    marker: {
+                        radius: 2
+                    },
+                    lineWidth: 1,
+                    states: {
+                        hover: {
+                            lineWidth: 1
+                        }
+                    },
+                    threshold: null
+                }
+            },
+
+            series: [{
+                type: 'area',
+                name: 'USD to EUR',
+                data: (function() {
+                    var data = [];
+                    for (var index = 0; index < chargeData.length; index++) {
+                        data.push({
+                            x: chargeData[index].time,
+                            y: chargeData[index].socValue
+                        });
+                        console.log("---------timestamp:"+chargeData[index].time+"value:"+chargeData[index].socValue);
+                    }
+                    return data;
+                }())
+            }]
         });
+        
     }
 
-    $scope.pushChargeData(); 
-
+    $scope.getChargeData();
+    // $scope.displaySoc();
 }]);

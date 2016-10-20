@@ -82,7 +82,7 @@ app.get("/dischargedata", function(req, res) {
 
 
 app.get("/socdata", function(req, res) {
-    var sql = 'SELECT * FROM bms.batteryData order by timestp desc';
+    var sql = 'SELECT * FROM bms.batteryData order by timestp desc limit 10';
     connection.query(sql, function(err, rows, fields) {
         if (!err) {
             console.log('The solution is: ', rows);

@@ -50,7 +50,7 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
             $scope.getCurrentData();
         }, 2000);*/
         $interval(function() {
-             console.log("refreshing...");
+             // console.log("refreshing...");
             $scope.getCurrentData();
         }, 2000);
     };
