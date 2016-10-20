@@ -30,15 +30,23 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
     };
 
     $scope.getIntialData = function () {
+
+        console.log("getInialData");
         $http.get("/initialcurrentdata").success(function(response) {
             console.log(response);
             $scope.processInitialCurrentData(response);
+            $scope.drawCurrentChart();
+
         });
     };
 
 
     $scope.initialx = [];
     $scope.initialy = [];
+    // for(var i=0; i<=19; i++){
+    //     $scope.initialx[i] = i;
+    //     $scope.initialy[i] = i;
+    // }
     $scope.processInitialCurrentData = function (rawData) {
         var len = rawData.length;
         for(var i = 0; i < len - 1; i++){
@@ -79,6 +87,7 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
     };
 
     $scope.drawCurrentChart = function() {
+
             
         Highcharts.setOptions({
             global: {
@@ -152,6 +161,9 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
                     var data = [],
                         time = (new Date()).getTime(),
                         i;
+                    console.log("check data");
+                    console.log($scope.initialx);
+                    console.log($scope.initialy);
 
                     for (i = 0; i <= 10; i++) {
                         data.push({
@@ -172,7 +184,7 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
 
     //$scope.refresh();
     $scope.getIntialData();
-    $scope.drawCurrentChart();
+    //$scope.drawCurrentChart();
 
 
 }]);
