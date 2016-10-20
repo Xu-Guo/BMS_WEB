@@ -10,11 +10,11 @@ var assert = require('assert')
 
 var mysql = require('mysql');
 var connection = mysql.createConnection({
-    //host: '10.1.4.23',
-    host:'localhost',
+    host: '10.1.4.23',
+    //host:'localhost',
     user: 'root',
-    //password: 'root',
-    password: 'mysql',
+    password: 'root',
+    //password: 'mysql',
 
     database: 'bms'
 
@@ -41,7 +41,7 @@ app.get("/currentdata", function(req, res) {
 // get one item from id.
 app.get("/chargedata", function(req, res) {
     // var sql = 'SELECT * FROM bms.batteryData where battery_status=1 and ch_cur >= 100 order by timestp desc limit 100';
-    var sql = 'SELECT * FROM bms.batteryData where battery_status=1 order by timestp desc limit 100';
+    var sql = 'SELECT * FROM bms.batteryData where battery_status=1 order by timestp limit 8000';
     connection.query(sql, function(err, rows, fields) {
         if (!err) {
             console.log('The solution is: ', rows);
