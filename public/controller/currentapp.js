@@ -29,13 +29,32 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
         }
     };
 
-    $scope.drawCurrentChart = function() {
-            
-        Highcharts.setOptions({
-            global: {
-                useUTC: false
-            }
+    $scope.getIntialData = function () {
+        $http.get("/initialcurrentdata").success(function(response) {
+            console.log(response);
+            $scope.processInitialCurrentData(response);
         });
+    };
+
+
+    $scope.initialx = [];
+    $scope.initialy = [];
+    $scope.processInitialCurrentData = function (rawData) {
+        var len = rawData.length;
+        for(var i = 0; i < len - 1; i++){
+
+            $scope.initialx[i] = new Date(rawData[i].timestp).getTime();
+
+            if(Number(rawData[i].battery_status) == 2){
+                $scope.initialy[i] = 0 - Number(rawData[i].dis_cur);
+            }else if(Number(rawData[i].battery_status) == 1){
+                $scope.initialy[i] = Number(rawData[i].ch_cur);
+            }
+
+        }
+        console.log($scope.initialx);
+        console.log($scope.initialy);
+    };
 
     var gotNewDataFlag;
     var pidOld = 0;
@@ -44,21 +63,28 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
     var x;
     var y;
 
+
     $scope.processCurrentData = function(rawData) {
-        var pidNew = Number(rawData.id);
+        var pidNew = Number(rawData[0].id);
         if(pidNew == pidOld){
             return;
         }
         gotNewDataFlag = 1;
-        time = new Date(rawData.timestp).toLocalTimeString();
-        if(Number(rawData.battery_status) == 2){ //discharge
-            value = 0 - Number(rawData.dis_cur);
-        }else if(Number(rawData.battery_status) == 1){//charging
-            value = Number(rawData.ch_cur);
+        time = new Date(rawData[0].timestp).getTime();
+        if(Number(rawData[0].battery_status) == 2){ //discharge
+            value = 0 - Number(rawData[0].dis_cur);
+        }else if(Number(rawData[0].battery_status) == 1){//charging
+            value = Number(rawData[0].ch_cur);
         }
-    }
+    };
 
-        // $('#container').html("test");        
+    $scope.drawCurrentChart = function() {
+            
+        Highcharts.setOptions({
+            global: {
+                useUTC: false
+            }
+        });
 
         $('#container').highcharts({
             chart: {
@@ -71,14 +97,14 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
                         // set up the updating of the chart each second
                         var series = this.series[0];
                         setInterval(function () {
-                            $scope.refresh();
+                            //$scope.refresh();
                             if(gotNewDataFlag == 1){
                                 x = time;
                                 y = value;
                             }
                             x = (new Date()).getTime(), // current time
                             series.addPoint([x, y], true, true);
-                        }, 1000);
+                        }, 100000);
                     }
                 }
             },
@@ -122,33 +148,31 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
             series: [{
                 name: 'Random data',
                 data: (function () {
-                    // generate an array of random data
+                    //generate an array of random data
                     var data = [],
                         time = (new Date()).getTime(),
                         i;
 
-                    for (i = -19; i <= 0; i += 1) {
+                    for (i = 0; i <= 10; i++) {
                         data.push({
-                            x: time + i * 1000,
-                            y: Math.random()
+                            x: $scope.initialx[i],
+                            y: $scope.initialy[i]
                         });
+
                     }
                     return data;
                 }())
+
             }]
 
 
         });
-        console.log("aaa");
+        //console.log("aaa");
     }
 
     //$scope.refresh();
+    $scope.getIntialData();
     $scope.drawCurrentChart();
 
-
-
-
-
-    
 
 }]);

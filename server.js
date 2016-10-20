@@ -10,11 +10,11 @@ var assert = require('assert')
 
 var mysql = require('mysql');
 var connection = mysql.createConnection({
-    host: '10.1.4.23',
-    //host:'localhost',
+    //host: '10.1.4.23',
+    host:'localhost',
     user: 'root',
-    password: 'root',
-    //password: 'mysql',
+    //password: 'root',
+    password: 'mysql',
 
     database: 'bms'
 
@@ -25,6 +25,19 @@ app.use(express.static(__dirname + "/public"));
 app.use(bodyParser.json());
 
 app.get("/currentdata", function(req, res) {
+    //var sql = 'SELECT * FROM bms.batteryData order by timestp desc limit 20 ';
+    var sql = 'SELECT * FROM bms.batterydata order by timestp desc limit 1 '; //for local DB
+    connection.query(sql, function(err, rows, fields) {
+        if (!err) {
+            console.log('The solution is: ', rows);
+            res.json(rows);
+        } else {
+            console.log('Error while performing Query.');
+        }
+    });
+});
+
+app.get("/initialcurrentdata", function(req, res) {
     //var sql = 'SELECT * FROM bms.batteryData order by timestp desc limit 20 ';
     var sql = 'SELECT * FROM bms.batterydata order by timestp desc limit 20 '; //for local DB
     connection.query(sql, function(err, rows, fields) {
