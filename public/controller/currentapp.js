@@ -50,7 +50,7 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
             $scope.getCurrentData();
         }, 2000);*/
         $interval(function() {
-             // console.log("refreshing...");
+             console.log("refreshing...");
             $scope.getCurrentData();
         }, 2000);
     };
@@ -197,10 +197,11 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
                             x: DisplayData[index].time,
                             y: DisplayData[index].value
                         });
-                        console.log("---------timestamp:"+DisplayData[index].time+"value:"+DisplayData[index].time);
+                        console.log("---------timestamp:"+DisplayData[index].time+"value:"+DisplayData[index].value);
                     }
                     return data;
                 }())
+
             }]
 
 
