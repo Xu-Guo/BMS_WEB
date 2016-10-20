@@ -4,79 +4,109 @@ const CHART = document.getElementById("lineChart");
 
 
 app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $http, $interval) {
+    var gotNewDataFlag=0;
+    var pidOld = 0;
+    var time;
+    var value;
+    var x;
+    var y;
+    var DisplayData = [];
+    var pirate = [];
+    var index = 0;
+    var singleData = {"time":(new Date()).getTime(),"value":0};
+    var lastestStatus;
+
     $scope.getCurrentData = function() {
         $http.get("/currentdata").success(function(response) {
-            console.log(response);
-            //$scope.processCurrentData(response);
+            // console.log("Get data from server and Ready to process");
+            $scope.processCurrentData(response[0]);
         });
     };
-
-    var stop;
+    $scope.processCurrentData = function(rawData) {
+        var pidNew = Number(rawData.id);
+        lastestStatus = rawData.battery_status;
+        // console.log("check PID pidNew:"+pidNew+"pidOld:"+pidOld);
+        if (pidNew <= pidOld) return{"time": (new Date()).getTime(), "value":singleData.value};
+        time = new Date(rawData.timestp.replace(' ', 'T')).getTime();
+        if (Number(rawData.battery_status) == 2) { //discharge
+            value = 0 - Number(rawData.dis_cur);
+        } else if (Number(rawData.battery_status) == 1) { //charging
+            value = Number(rawData.ch_cur);
+        }
+        singleData.time = time;
+        singleData.value = value;
+        pidOld = pidNew;
+        gotNewDataFlag = 1;
+        // console.log("^^^^^^^check time:"+time+"value:"+value);
+        return {"time":time, "value":value};
+    }
+   // var stop;
     $scope.refresh = function() {
         // Don't start a new fight if we are already fighting
-        if (angular.isDefined(stop)) return;
-        $scope.getCurrentData();
-        stop = $interval(function() {
+        //if (angular.isDefined(stop)) return;
+        // $scope.getCurrentData();
+        /*stop = $interval(function() {
             // console.log("refreshing...");
             $scope.getCurrentData();
-        }, 500);
+        }, 2000);*/
+        $interval(function() {
+             // console.log("refreshing...");
+            $scope.getCurrentData();
+        }, 2000);
     };
-
+    $scope.processInitCurrentData = function(rawData){
+        //var temp = [];
+        rawData.reverse();
+        for(var i=0; i<rawData.length; i++){
+            var cur = $scope.processCurrentData(rawData[i]);
+            DisplayData.push(cur);
+         // console.log("##############timestamp:"+DisplayData[i].time+"value:"+DisplayData[i].value);
+        }
+        // DisplayData.reverse();
+    }
+    $scope.getInitalCurrentData = function() {
+        $http.get("/currentdata").success(function(response) {
+            console.log("Initial data from server and Ready to process");
+            $scope.processInitCurrentData(response);
+            $scope.drawCurrentChart();
+        });
+    };
     $scope.stopRefresh = function() {
         if (angular.isDefined(stop)) {
             $interval.cancel(stop);
             stop = undefined;
         }
     };
-
     $scope.drawCurrentChart = function() {
-            
+
         Highcharts.setOptions({
             global: {
                 useUTC: false
             }
         });
-
-    var gotNewDataFlag;
-    var pidOld = 0;
-    var time;
-    var value;
-    var x;
-    var y;
-
-    $scope.processCurrentData = function(rawData) {
-        var pidNew = Number(rawData.id);
-        if(pidNew == pidOld){
-            return;
-        }
-        gotNewDataFlag = 1;
-        time = new Date(rawData.timestp).toLocalTimeString();
-        if(Number(rawData.battery_status) == 2){ //discharge
-            value = 0 - Number(rawData.dis_cur);
-        }else if(Number(rawData.battery_status) == 1){//charging
-            value = Number(rawData.ch_cur);
-        }
-    }
-
-        // $('#container').html("test");        
-
         $('#container').highcharts({
             chart: {
                 type: 'spline',
                 animation: Highcharts.svg, // don't animate in old IE
                 marginRight: 10,
                 events: {
-                    load: function () {
+                    load: function() {
 
                         // set up the updating of the chart each second
                         var series = this.series[0];
-                        setInterval(function () {
+                        setInterval(function() {
                             $scope.refresh();
-                            if(gotNewDataFlag == 1){
-                                x = time;
-                                y = value;
+                            if (gotNewDataFlag==1) {
+                                x = singleData.time;
+                                y = singleData.value;
+                                console.log("-------New data x:" + x + "val:" + y);
+                                gotNewDataFlag =0;
+                            } else {
+                                x = (new Date()).getTime();
+                                if (lastestStatus!=0) y = singleData.value;
+                                else y = 0;
+                                console.log("^^^^^^No new data x:" + x + "val:" + y);
                             }
-                            x = (new Date()).getTime(), // current time
                             series.addPoint([x, y], true, true);
                         }, 1000);
                     }
@@ -89,7 +119,8 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
             },
             xAxis: {
                 type: 'datetime',
-                tickPixelInterval: 150
+                // tickPixelInterval: 150
+                tickPixelInterval: 1000
             },
             yAxis: {
                 title: {
@@ -103,7 +134,7 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
             },
 
             tooltip: {
-                formatter: function () {
+                formatter: function() {
                     return '<b>' + this.series.name + '</b><br/>' +
                         Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
                         Highcharts.numberFormat(this.y, 2);
@@ -119,19 +150,54 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
             },
 
 
-            series: [{
-                name: 'Random data',
-                data: (function () {
-                    // generate an array of random data
-                    var data = [],
-                        time = (new Date()).getTime(),
-                        i;
+            /*  series: [{
+                  name: 'Random data',
+                  data: (function () {
+                      // generate an array of random data
+                      var data = [],
+                          time = (new Date()).getTime(),
+                          i;
 
-                    for (i = -19; i <= 0; i += 1) {
+                      for (i = -19; i <= 0; i += 1) {
+                          data.push({
+                              x: time + i * 1000,
+                              y: Math.random()
+                          });
+                      }
+                      return data;
+                  }())
+              }]*/
+            /*series: [{
+                    name: 'Random data',
+                    data: (function() {
+                        // generate an array of random data
+                        var data = [],
+                            time = (new Date()).getTime(),
+                            i;
+
+                        for (i = -19; i <= 0; i += 1) {
+                            data.push({
+                                x: time + i * 1000,
+                                y: i
+                            });
+                        }
+                        return data;
+                    }())
+                }]*/
+            /* series: [{
+                  name: 'Real data',
+                  data: ($scope.initChart())
+              }]*/
+            series: [{
+                name: 'Real data',
+                data: (function() {
+                    var data = [];
+                    for (index = 0; index < DisplayData.length; index++) {
                         data.push({
-                            x: time + i * 1000,
-                            y: Math.random()
+                            x: DisplayData[index].time,
+                            y: DisplayData[index].value
                         });
+                        console.log("---------timestamp:"+DisplayData[index].time+"value:"+DisplayData[index].time);
                     }
                     return data;
                 }())
@@ -139,16 +205,7 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
 
 
         });
-        console.log("aaa");
     }
 
-    //$scope.refresh();
-    $scope.drawCurrentChart();
-
-
-
-
-
-    
-
+    $scope.getInitalCurrentData();
 }]);
