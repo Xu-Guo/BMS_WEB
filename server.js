@@ -11,22 +11,32 @@ var assert = require('assert')
 var mysql = require('mysql');
 var connection = mysql.createConnection({
     host: '10.1.4.23',
+<<<<<<< HEAD
     //host:'localhost',
     user: 'root',
     password: 'root',
     //password: 'mysql',
+=======
+    // host:'localhost',
+    user: 'root',
+    password: 'root',
+    // password: 'mysql',
+>>>>>>> master
 
     database: 'bms'
 
 });
-
 
 app.use(express.static(__dirname + "/public"));
 app.use(bodyParser.json());
 
 app.get("/currentdata", function(req, res) {
     var sql = 'SELECT * FROM bms.batteryData order by timestp desc limit 20 ';
+<<<<<<< HEAD
     //var sql = 'SELECT * FROM bms.batterydata order by timestp desc limit 1 '; //for local DB
+=======
+    // var sql = 'SELECT * FROM bms.batterydata order by timestp desc limit 20 '; //for local DB
+>>>>>>> master
     connection.query(sql, function(err, rows, fields) {
         if (!err) {
             console.log('The solution is: ', rows);
@@ -36,10 +46,17 @@ app.get("/currentdata", function(req, res) {
         }
     });
 });
+<<<<<<< HEAD
 
 app.get("/initialcurrentdata", function(req, res) {
     var sql = 'SELECT * FROM bms.batteryData order by timestp desc limit 2 ';
     //var sql = 'SELECT * FROM bms.batterydata order by timestp desc limit 20 '; //for local DB
+=======
+/*app.post("/currentdata", function(req, res) {
+    console.log('#####The solution is: ', req.timeStamp);
+    var sql = 'SELECT * FROM bms.batteryData order by timestp desc limit 20 ';
+    // var sql = 'SELECT * FROM bms.batterydata order by timestp desc limit 20 '; //for local DB
+>>>>>>> master
     connection.query(sql, function(err, rows, fields) {
         if (!err) {
             console.log('The solution is: ', rows);
@@ -48,9 +65,7 @@ app.get("/initialcurrentdata", function(req, res) {
             console.log('Error while performing Query.');
         }
     });
-});
-
-
+});*/
 // get one item from id.
 app.get("/chargedata", function(req, res) {
     // var sql = 'SELECT * FROM bms.batteryData where battery_status=1 and ch_cur >= 100 order by timestp desc limit 100';
