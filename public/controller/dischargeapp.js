@@ -54,11 +54,11 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
         var j = 0;
         var sum = 0;
         for (var i = 1; i < arrayLength; i++) {
-
+            var chop = (arrayLength/10).toFixed(0);
             charge[i] = disCur[i] * (tstp[i] - tstp[i-1]);
             sum += charge[i];
-            if ((count % 400) == 0 || count == arrayLength - 1){
-                total[j] = sum;
+            if ((count % chop) == 0 || count == arrayLength - 1){
+                total[j] = 520000 - sum;
                 xlable[j] = new Date(rawData[i].timestp).toLocaleTimeString();
                 j++;
             }

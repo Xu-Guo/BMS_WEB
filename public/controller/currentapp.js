@@ -3,6 +3,22 @@ var app = angular.module('plunker', ['nvd3']);
 const CHART = document.getElementById("lineChart");
 
 
+<<<<<<< HEAD
+app.controller('MainCtrl', ['$scope', '$http', '$interval', function ($scope, $http, $interval) {
+    $scope.getCurrentData = function () {
+        $http.get("/currentdata").success(function (response) {
+            console.log(response);
+            $scope.processCurrentData(response);
+        });
+    };
+
+    var stop;
+    $scope.refresh = function () {
+        // Don't start a new fight if we are already fighting
+        if (angular.isDefined(stop)) return;
+        $scope.getCurrentData();
+        stop = $interval(function () {
+=======
 app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $http, $interval) {
     var gotNewDataFlag=0;
     var pidOld = 0;
@@ -46,6 +62,7 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
         //if (angular.isDefined(stop)) return;
         // $scope.getCurrentData();
         /*stop = $interval(function() {
+>>>>>>> master
             // console.log("refreshing...");
             $scope.getCurrentData();
         }, 2000);*/
@@ -54,6 +71,22 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
             $scope.getCurrentData();
         }, 2000);
     };
+<<<<<<< HEAD
+
+    $scope.stopRefresh = function () {
+        if (angular.isDefined(stop)) {
+            $interval.cancel(stop);
+            stop = undefined;
+        }
+    };
+
+    $scope.getIntialData = function () {
+
+        console.log("getInialData");
+        $http.get("/initialcurrentdata").success(function (response) {
+            console.log(response);
+            $scope.processInitialCurrentData(response);
+=======
     $scope.processInitCurrentData = function(rawData){
         //var temp = [];
         rawData.reverse();
@@ -68,16 +101,75 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
         $http.get("/currentdata").success(function(response) {
             console.log("Initial data from server and Ready to process");
             $scope.processInitCurrentData(response);
+>>>>>>> master
             $scope.drawCurrentChart();
         });
     };
+<<<<<<< HEAD
+
+
+    $scope.initialx = [];
+    $scope.initialy = [];
+    // for(var i=0; i<=19; i++){
+    //     $scope.initialx[i] = i;
+    //     $scope.initialy[i] = i;
+    // }
+    $scope.processInitialCurrentData = function (rawData) {
+        var len = rawData.length;
+        for (var i = 0; i < len - 1; i++) {
+
+            $scope.initialx[i] = new Date(rawData[i].timestp).getTime();
+
+            if (Number(rawData[i].battery_status) == 2) {
+                $scope.initialy[i] = 0 - Number(rawData[i].dis_cur);
+            } else if (Number(rawData[i].battery_status) == 1) {
+                $scope.initialy[i] = Number(rawData[i].ch_cur);
+            }
+
+        }
+        console.log($scope.initialx);
+        console.log($scope.initialy);
+    };
+
+    var gotNewDataFlag;
+    var pidOld = 0;
+    var time;
+    var value;
+    var x;
+    var y;
+    var lateststatus;
+
+
+    $scope.processCurrentData = function (rawData) {
+        lateststatus = rawData[0].battery_status;
+        var pidNew = Number(rawData[0].id);
+
+        if (pidNew == pidOld) {
+            return;
+        }
+        gotNewDataFlag = 1;
+        time = new Date(rawData[0].timestp).getTime();
+        if (Number(rawData[0].battery_status) == 2) { //discharge
+            value = 0 - Number(rawData[0].dis_cur);
+        } else if (Number(rawData[0].battery_status) == 1) {//charging
+            value = Number(rawData[0].ch_cur);
+=======
     $scope.stopRefresh = function() {
         if (angular.isDefined(stop)) {
             $interval.cancel(stop);
             stop = undefined;
+>>>>>>> master
         }
+        pidOld = pidNew;
+        console.log("iam here wwwwwwwwwwwwwwwwwwww");
     };
+<<<<<<< HEAD
+
+    $scope.drawCurrentChart = function () {
+
+=======
     $scope.drawCurrentChart = function() {
+>>>>>>> master
 
         Highcharts.setOptions({
             global: {
@@ -94,6 +186,25 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
 
                         // set up the updating of the chart each second
                         var series = this.series[0];
+<<<<<<< HEAD
+                        setInterval(function () {
+                            $scope.refresh();
+
+                            if (gotNewDataFlag == 1) {
+                                console.log(" i m here!!@!@!@!@!");
+                                x = time;
+                                y = value;
+                                gotNewDataFlag = 0;
+                            } else {
+                                if (lateststatus != 0) {
+                                    y = value;
+                                } else {
+                                    y = 0;
+                                }
+                                x = (new Date()).getTime();// current time
+                            }
+
+=======
                         setInterval(function() {
                             $scope.refresh();
                             if (gotNewDataFlag==1) {
@@ -107,6 +218,7 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
                                 else y = 0;
                                 console.log("^^^^^^No new data x:" + x + "val:" + y);
                             }
+>>>>>>> master
                             series.addPoint([x, y], true, true);
                         }, 1000);
                     }
@@ -115,7 +227,7 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
 
 
             title: {
-                text: 'Live random data'
+                text: 'Real-Time Current Information'
             },
             xAxis: {
                 type: 'datetime',
@@ -124,7 +236,7 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
             },
             yAxis: {
                 title: {
-                    text: 'Value'
+                    text: 'Current(mA)'
                 },
                 plotLines: [{
                     value: 0,
