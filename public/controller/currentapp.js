@@ -135,7 +135,7 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function ($scope, $h
 
 
             title: {
-                text: 'Live random data'
+                text: 'Real-Time Current Information'
             },
             xAxis: {
                 type: 'datetime',
@@ -143,7 +143,7 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function ($scope, $h
             },
             yAxis: {
                 title: {
-                    text: 'Value'
+                    text: 'Current(mA)'
                 },
                 plotLines: [{
                     value: 0,

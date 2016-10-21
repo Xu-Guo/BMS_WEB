@@ -38,7 +38,7 @@ app.get("/currentdata", function(req, res) {
 });
 
 app.get("/initialcurrentdata", function(req, res) {
-    var sql = 'SELECT * FROM bms.batteryData order by timestp desc limit 20 ';
+    var sql = 'SELECT * FROM bms.batteryData order by timestp desc limit 2 ';
     //var sql = 'SELECT * FROM bms.batterydata order by timestp desc limit 20 '; //for local DB
     connection.query(sql, function(err, rows, fields) {
         if (!err) {
@@ -54,7 +54,7 @@ app.get("/initialcurrentdata", function(req, res) {
 // get one item from id.
 app.get("/chargedata", function(req, res) {
     // var sql = 'SELECT * FROM bms.batteryData where battery_status=1 and ch_cur >= 100 order by timestp desc limit 100';
-    var sql = 'SELECT * FROM bms.batteryData where battery_status=1 order by timestp limit 8000';
+    var sql = 'SELECT * FROM bms.batteryData where battery_status=1  and id > 8594 order by timestp limit 8000';
     connection.query(sql, function(err, rows, fields) {
         if (!err) {
             console.log('The solution is: ', rows);
@@ -70,7 +70,7 @@ app.get("/chargedata", function(req, res) {
 app.get("/dischargedata", function(req, res) {
     //connection.connect();
     //var sql = 'SELECT * FROM bms.batteryData where battery_status=2 limit 8000';
-    var sql = 'SELECT * FROM bms.batteryData where battery_status=2 limit 8000';//for local DB
+    var sql = 'SELECT * FROM bms.batteryData where battery_status=2 and id > 8047 limit 8000';//for local DB
     connection.query(sql, function(err, rows, fields) {
         if (!err) {
             console.log('The solution is: ', rows);
