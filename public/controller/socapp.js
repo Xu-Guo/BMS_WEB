@@ -46,10 +46,7 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
             chargeData.push({"time":time, "socValue":socValue}); 
 
         }
-    }
-    var test = [];
-    for(var i=0; i<1000; i++){
-        test.push(i);
+        chargeData.reverse();
     }
 
     $scope.displaySoc = function(){
@@ -110,12 +107,14 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
 
             series: [{
                 type: 'area',
-                name: 'USD to EUR',
+                name: 'StateOfCharge',
                 data: (function() {
                     var data = [];
                     for (var index = 0; index < chargeData.length; index++) {
                         data.push({
-                            x: chargeData[index].time,
+                            x: chargeData[index].time-25200000, 
+                            // time zone of Date in Javascript is GMT, our local time is 7hours later,
+                            //which is 25200000
                             y: chargeData[index].socValue
                         });
                         console.log("---------timestamp:"+chargeData[index].time+"value:"+chargeData[index].socValue);
@@ -128,5 +127,4 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
     }
 
     $scope.getChargeData();
-    // $scope.displaySoc();
 }]);
