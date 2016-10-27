@@ -103,13 +103,15 @@ app.controller('MainCtrl', ['$scope', '$http', '$interval', function($scope, $ht
                                 y = singleData.value;
                                 console.log("-------New data x:" + x + "val:" + y);
                                 gotNewDataFlag =0;
-                            } else {
-                                x = (new Date()).getTime();
-                                if (lastestStatus!=0) y = singleData.value;
-                                else y = 0;
-                                console.log("^^^^^^No new data x:" + x + "val:" + y);
+                                series.addPoint([x, y], true, true);
                             }
-                            series.addPoint([x, y], true, true);
+                            //else {
+                            //     x = (new Date()).getTime();
+                            //     if (lastestStatus!=0) y = singleData.value;
+                            //     else y = 0;
+                            //     console.log("^^^^^^No new data x:" + x + "val:" + y);
+                            // }
+
                         }, 1000);
                     }
                 }
